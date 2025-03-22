@@ -13,8 +13,8 @@ export default function ChatGPT() {
     setInput("");
 
     const reply = await sendMessageToChatGPT(userInput);
-    const parsed = await marked.parse(reply); // <-- ✅ Esperamos la promesa
-    setResponse(parsed); // <-- Ahora sí es un string
+    const parsed = await marked.parse(reply);
+    setResponse(parsed);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -27,7 +27,7 @@ export default function ChatGPT() {
   return (
     <div className="fixed bottom-4 right-4 p-4 bg-white shadow-lg rounded-lg w-96 max-w-full z-50">
       <h3 className="text-lg font-bold mb-2">Asistente Virtual</h3>
-      
+
       <textarea
         className="w-full p-2 border border-gray-300 rounded mb-2"
         rows={2}
@@ -50,4 +50,6 @@ export default function ChatGPT() {
           dangerouslySetInnerHTML={{ __html: response }}
         />
       )}
-   
+    </div>
+  );
+}
