@@ -9,10 +9,10 @@ export default function ChatGPT() {
   const handleSend = async () => {
     if (!input.trim()) return;
 
-    const reply = await sendMessageToChatGPT(input);
-    const html = await marked.parse(reply); // 🔥 Esta línea es clave
-    setResponse(html);
-    setInput(""); // Limpia el input después de enviar
+    const message = input;
+    setInput(""); // Limpia el input inmediatamente
+    const reply = await sendMessageToChatGPT(message);
+    setResponse(reply);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -44,8 +44,8 @@ export default function ChatGPT() {
 
       {response && (
         <div
-          className="mt-4 p-2 border-t border-gray-200 text-sm text-gray-700 prose max-w-full"
-          dangerouslySetInnerHTML={{ __html: response }}
+          className="mt-4 p-2 border-t border-gray-200 text-sm text-gray-700 prose max-w-full overflow-auto"
+          dangerouslySetInnerHTML={{ __html: marked.parse(response) }}
         />
       )}
     </div>
