@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { sendMessageToChatGPT } from "@/api/chat";
-import { marked } from "marked";
 
 export default function ChatGPT() {
   const [input, setInput] = useState("");
@@ -9,10 +8,9 @@ export default function ChatGPT() {
   const handleSend = async () => {
     if (!input.trim()) return;
 
-    const message = input;
-    setInput(""); // Limpia el input inmediatamente
-    const reply = await sendMessageToChatGPT(message);
+    const reply = await sendMessageToChatGPT(input);
     setResponse(reply);
+    setInput(""); // Limpia el campo
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -23,7 +21,7 @@ export default function ChatGPT() {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 p-4 bg-white shadow-lg rounded-lg w-96 max-w-full z-50">
+    <div className="fixed bottom-4 right-4 p-4 bg-white shadow-lg rounded-lg w-96 max-w-full">
       <h3 className="text-lg font-bold mb-2">Asistente Virtual</h3>
 
       <textarea
@@ -43,10 +41,9 @@ export default function ChatGPT() {
       </button>
 
       {response && (
-        <div
-          className="mt-4 p-2 border-t border-gray-200 text-sm text-gray-700 prose max-w-full overflow-auto"
-          dangerouslySetInnerHTML={{ __html: marked.parse(response) }}
-        />
+        <div className="mt-4 p-2 border-t border-gray-200 text-sm text-gray-700 whitespace-pre-wrap">
+          <strong>ChatGPT:</strong> {response}
+        </div>
       )}
     </div>
   );
