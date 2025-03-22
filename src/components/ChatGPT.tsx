@@ -9,8 +9,8 @@ export default function ChatGPT() {
     if (!input.trim()) return;
 
     const reply = await sendMessageToChatGPT(input);
-    setResponse(reply);
-    setInput(""); // Limpia el campo
+    setResponse(reply); // se asume que reply es string
+    setInput(""); // limpia el input
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
