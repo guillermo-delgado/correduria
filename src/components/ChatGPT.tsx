@@ -13,8 +13,8 @@ export default function ChatGPT() {
     setInput("");
 
     const reply = await sendMessageToChatGPT(userInput);
-    const parsed = await marked.parse(reply);
-    setResponse(parsed);
+    const html = marked.parseSync(reply); // 👈 Solución: versión síncrona
+    setResponse(html);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
