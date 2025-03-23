@@ -25,5 +25,9 @@ export default function SWUpdater() {
         Actualizar
       </button>
     </div>
+    
   ) : null;
+  // src/components/SWUpdater.tsx
+console.log("Versión corregida ✅");
+
 }
