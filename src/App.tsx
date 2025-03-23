@@ -3,6 +3,9 @@ import ChatGPT from "@/components/ui/ChatGPT";
 import SWUpdater from "@/components/SWUpdater"; 
 import Navbar from "./components/Navbar";
 
+// 👇 Añadimos un console.log para forzar deploy
+console.log("Forzar deploy correcto 🚀");
+
 function App() {
   return (
     <>
