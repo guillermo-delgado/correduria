@@ -7,16 +7,7 @@ export default function Home() {
   return (
     
     <div className="bg-gray-50 text-gray-900 min-h-screen w-screen">
-      {/* Header */}
-      <header className="flex justify-between items-center px-6 py-4 bg-white shadow-md w-full">
-        <h1 className="text-2xl font-bold">Correduría Integral</h1>
-        <nav className="space-x-6">
-          <a href="#services" className="hover:text-blue-600">Servicios</a>
-          <a href="#about" className="hover:text-blue-600">Sobre Nosotros</a>
-          <a href="#contact" className="hover:text-blue-600">Contacto</a>
-        </nav>
-        <Button className="bg-blue-600 text-white px-4 py-2 rounded-lg">Solicitar Asesoría</Button>
-      </header>
+    
 
       {/* Hero Section */}
       <section className="flex flex-col items-center justify-center text-center py-20 px-6 min-h-screen w-screen bg-gray-100">
