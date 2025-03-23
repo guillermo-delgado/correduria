@@ -1,6 +1,6 @@
 // src/components/SWUpdater.tsx
 import { useEffect, useState } from "react";
-import { useRegisterSW } from 'virtual:pwa-register'
+import { useRegisterSW } from 'virtual:pwa-register';
 
 
 export default function SWUpdater() {
