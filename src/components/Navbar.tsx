@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
+import LoginModal from "./ui/LoginModal"; // Asegúrate de tener este componente
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
 
   return (
     <>
@@ -22,12 +24,12 @@ const Navbar = () => {
 
           {/* Botón de acceso a la derecha */}
           <div className="flex-1 flex justify-end items-center">
-            <a
-              href="#login"
+            <button
+              onClick={() => setIsLoginOpen(true)}
               className="hidden md:inline-block bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
             >
               Acceso / Registro
-            </a>
+            </button>
 
             {/* Botón hamburguesa móvil */}
             <button
@@ -40,6 +42,9 @@ const Navbar = () => {
           </div>
         </div>
       </header>
+
+      {/* Modal de login */}
+      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
 
       {/* Drawer móvil */}
       <div
@@ -57,7 +62,15 @@ const Navbar = () => {
           <a href="#services" onClick={() => setIsOpen(false)} className="hover:text-blue-600">Servicios</a>
           <a href="#about" onClick={() => setIsOpen(false)} className="hover:text-blue-600">Sobre Nosotros</a>
           <a href="#contact" onClick={() => setIsOpen(false)} className="hover:text-blue-600">Contacto</a>
-          <a href="#login" onClick={() => setIsOpen(false)} className="hover:text-blue-600">Acceso / Registro</a>
+          <button
+            onClick={() => {
+              setIsLoginOpen(true);
+              setIsOpen(false);
+            }}
+            className="hover:text-blue-600 text-left"
+          >
+            Acceso / Registro
+          </button>
         </nav>
       </div>
 

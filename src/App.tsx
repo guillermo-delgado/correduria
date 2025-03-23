@@ -3,19 +3,22 @@ import ChatGPT from "@/components/ui/ChatGPT";
 import SWUpdater from "@/components/SWUpdater"; 
 import Navbar from "./components/Navbar";
 
+import Whatsapp from "@/pages/whatsapp";
+
 // 👇 Añadimos un console.log para forzar deploy
 console.log("Forzar deploy correcto 🚀");
 
 function App() {
   return (
     <>
-      <Navbar />
+      {/* <Navbar /> */}
       {/* Añade padding arriba para que no quede oculto detrás del navbar */}
-      <div className="pt-32">
-        <Home />
-      </div>
+      {/* <div className="pt-32">
+        <Home /> */}
+      {/* </div>
       <ChatGPT />
-      <SWUpdater />
+      <SWUpdater /> */}
+      <Whatsapp />
     </>
   );
 }
