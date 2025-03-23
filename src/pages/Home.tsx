@@ -61,7 +61,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Contacto */}
+      {/* Conasdatacto */}
       <section id="contact" className="py-20 bg-gray-100 text-center w-screen">
         <h3 className="text-3xl font-semibold mb-6">Contáctanos</h3>
         <div className="flex justify-center space-x-6 text-gray-700">
@@ -72,7 +72,7 @@ export default function Home() {
             <FaEnvelope /> <span>info@correduria.com</span>
           </div>
           <div className="flex items-center space-x-2">
-            <FaMapMarkerAlt /> <span>Granada, España</span>
+            <FaMapMarkerAlt /> <span>Ganada, España</span>
           </div>
         </div>
       </section>
