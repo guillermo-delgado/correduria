@@ -1,7 +1,6 @@
 
 import { FaPhoneAlt, FaEnvelope, FaMapMarkerAlt } from "react-icons/fa";
 import { Button } from "@/components/ui/Button";
-import ChatGPT from "@/components/ui/ChatGPT";
 
 
 export default function Home() {
