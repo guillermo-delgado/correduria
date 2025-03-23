@@ -20,7 +20,7 @@ export default function SWUpdater() {
       <p>🔄 Nueva versión disponible</p>
       <button
         className="mt-2 px-3 py-1 bg-black text-white rounded"
-        onClick={() => updateServiceWorker(true)}
+        onClick={() => updateServiceWorker(true)} 
       >
         Actualizar
       </button>
