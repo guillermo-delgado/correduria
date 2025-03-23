@@ -1,6 +1,6 @@
-import Home from "./assets/pages/Home";
-import ChatGPT from "@/components/ChatGPT";
-//hola
+import Home from "@/pages/Home";
+import ChatGPT from "@/components/ui/ChatGPT";
+
 function App() {
   return (
     <>

@@ -1,7 +1,7 @@
 
 import { FaPhoneAlt, FaEnvelope, FaMapMarkerAlt } from "react-icons/fa";
 import { Button } from "@/components/ui/Button";
-import ChatGPT from "@/components/ChatGPT";
+import ChatGPT from "@/components/ui/ChatGPT";
 
 
 export default function Home() {
@@ -91,7 +91,7 @@ export default function Home() {
       <footer className="py-6 bg-gray-800 text-white text-center w-screen">
         <p>&copy; 2025 Correduría Integral. Todos los derechos reservados.</p>
       </footer>
-       <ChatGPT />
+     
     </div>
     
   );
