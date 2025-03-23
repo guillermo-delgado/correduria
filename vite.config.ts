@@ -1,4 +1,4 @@
-/// <reference types="node" />
+// vite.config.ts
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -13,6 +13,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      injectRegister: 'auto', // ✅ Esto es importante para usar useRegisterSW
       includeAssets: ['favicon.svg', 'robots.txt'],
       manifest: {
         name: 'Correduría Integral',
@@ -38,8 +39,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src'),
-      
+      '@': path.resolve(__dirname, 'src')
     }
   }
 })
