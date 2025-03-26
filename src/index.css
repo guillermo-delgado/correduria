@@ -2,6 +2,24 @@
 
 
 
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+}
+
+table th,
+table td {
+  border: 1px solid #d1d5db; /* Tailwind gray-300 */
+  padding: 0.5rem;
+  text-align: left;
+}
+
+table thead {
+  background-color: #f3f4f6; /* Tailwind gray-100 */
+}
+
+
 html, body {
   overflow-x: hidden;
 }

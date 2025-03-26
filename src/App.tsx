@@ -1,25 +1,21 @@
-import Home from "@/pages/Home";
-import ChatGPT from "@/components/ui/ChatGPT";
-import SWUpdater from "@/components/SWUpdater"; 
-import Navbar from "./components/Navbar";
-
-import Whatsapp from "@/pages/whatsapp";
-
-// 👇 Añadimos un console.log para forzar deploy
-console.log("Forzar deploy correcto 🚀");
+import { useState, useEffect } from "react";
+import WhatsappPage from "@/pages/whatsapp";
+import LoginPage from "@/pages/login";
 
 function App() {
-  return (
-    <>
-      {/* <Navbar /> */}
-      {/* Añade padding arriba para que no quede oculto detrás del navbar */}
-      {/* <div className="pt-32">
-        <Home /> */}
-      {/* </div>
-      <ChatGPT />
-      <SWUpdater /> */}
-      <Whatsapp />
-    </>
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  return user ? (
+    <WhatsappPage />
+  ) : (
+    <LoginPage onLogin={(user) => setUser(user)} />
   );
 }
 
