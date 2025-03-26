@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
 
+declare global {
+  interface Window {
+    google: any;
+  }
+}
+
 export default function LoginPage({ onLogin }: { onLogin: (user: any) => void }) {
   const [googleLoaded, setGoogleLoaded] = useState(false);
 
