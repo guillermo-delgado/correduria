@@ -68,8 +68,9 @@ export default function WhatsappPage() {
       const reply: string = data?.reply ?? '';
 // s
 
-      const html = marked.parse(reply);
-      const isHtml = html.includes('<table');
+const html = String(marked.parse(reply));
+const isHtml = html.includes('<table');
+
       const cleaned = isHtml ? html : html.replace(/^<p>(.*?)<\/p>\s*$/s, '$1');
 
       const finalMessages = [...newMessages, isHtml ? `🤖|HTML|${cleaned}` : `🤖 ${cleaned}`];
