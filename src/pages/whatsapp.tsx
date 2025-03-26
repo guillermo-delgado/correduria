@@ -10,8 +10,8 @@ export default function WhatsappPage() {
   const [chats, setChats] = useState<Chat[]>([
     {
       id: 1,
-      name: 'Asistente GPT',
-      messages: ['🤖 ChatGPT: ¡Hola! ¿En qué puedo ayudarte hoy?'],
+      name: 'Asistente',
+      messages: ['🤖 Asistente: ¡Hola! ¿En qué puedo ayudarte hoy?'],
     },
   ]);
 
@@ -37,27 +37,36 @@ export default function WhatsappPage() {
 
   const handleSend = async () => {
     if (!input.trim()) return;
-
+  
     const userMessage = `🧑‍💼 Tú: ${input}`;
     const newMessages = [...activeChat.messages, userMessage];
     updateChatMessages(activeChatId, newMessages);
     setInput('');
     setLoading(true);
-
+  
+    // ✅ Añadimos lógica de sessionId
+    let sessionId = localStorage.getItem('sessionId');
+    if (!sessionId) {
+      sessionId = Date.now().toString();
+      localStorage.setItem('sessionId', sessionId);
+    }
+  
     try {
-      const res = await fetch('https://back-end-correduria.onrender.com/api/chat', {
+      const res = await fetch('http://localhost:3001/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify({ message: input, sessionId }), // ← sessionId agregado
       });
-
-      const data = await res.json();
+  
+      const text = await res.text(); // 👈 Parseamos manualmente
+      const data = JSON.parse(text); // 👈 Convertimos a JSON
+  
       const reply = data?.reply;
-
+  
       const finalMessages = reply
         ? [...newMessages, `🤖 ChatGPT: ${reply}`]
         : [...newMessages, '❌ Error: Sin respuesta de ChatGPT.'];
-
+  
       updateChatMessages(activeChatId, finalMessages);
     } catch (error) {
       updateChatMessages(activeChatId, [
@@ -66,16 +75,18 @@ export default function WhatsappPage() {
         '❌ Error de red o API.',
       ]);
     }
-
+  
     setLoading(false);
   };
+  
+  
 
   const handleNewChat = () => {
     const newId = chats.length + 1;
     const newChat: Chat = {
       id: newId,
       name: `Asistente ${newId}`,
-      messages: ['🤖 ChatGPT: Hola, soy tu nuevo asistente. ¿Qué necesitas?'],
+      messages: ['🤖 Asistente: Hola, soy tu nuevo asistente. ¿Qué necesitas?'],
     };
     setChats([newChat, ...chats]);
     setActiveChatId(newId);
@@ -179,7 +190,7 @@ export default function WhatsappPage() {
             </div>
           ))}
           {loading && (
-            <div className="text-sm text-gray-400 italic">⏳ ChatGPT está escribiendo...</div>
+            <div className="text-sm text-gray-400 italic">⏳ Asistente está escribiendo...</div>
           )}
           <div ref={bottomRef} />
         </div>
