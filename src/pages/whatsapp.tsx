@@ -65,7 +65,7 @@ export default function WhatsappPage() {
 
       const text = await res.text();
       const data = JSON.parse(text);
-      const reply = data?.reply;
+      const reply = await data?.reply;
 
       const html = marked.parse(reply);
       const isHtml = html.includes('<table');
