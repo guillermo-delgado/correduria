@@ -134,7 +134,8 @@ if (!existingIds.includes(sessionId)) {
       const reply: string = data?.reply ?? '';
       if (!reply) throw new Error("Respuesta vacía");
 
-      const dirtyHtml = marked.parse(reply);
+      
+      const dirtyHtml = await marked.parse(reply);
       const html = DOMPurify.sanitize(dirtyHtml);
       const isHtml = html.includes('<table');
       const cleaned = isHtml ? html : html.replace(/^<p>(.*?)<\/p>\s*$/s, '$1');
