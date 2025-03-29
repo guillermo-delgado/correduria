@@ -41,8 +41,12 @@ export default function LoginPage({ onLogin }: { onLogin: (user: any) => void })
     })
       .then((res) => res.json())
       .then((data) => {
-        localStorage.setItem("user", JSON.stringify(data.user));
-        onLogin(data.user);
+        const user = {
+          ...data.user,
+          avatar: data.user.avatar || data.user.picture || null,
+        };
+        localStorage.setItem("user", JSON.stringify(user));
+        onLogin(user); // redirige a la app
       })
       .catch((err) => console.error("Error de autenticación:", err));
   };
@@ -51,7 +55,9 @@ export default function LoginPage({ onLogin }: { onLogin: (user: any) => void })
     <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-100 to-white">
       <div className="bg-white rounded-2xl shadow-xl p-10 w-full max-w-sm text-center">
         <h1 className="text-3xl font-extrabold text-gray-800 mb-6">Iniciar sesión</h1>
-        <p className="text-gray-500 mb-6 text-sm">Accede con tu cuenta de Google para continuar</p>
+        <p className="text-gray-500 mb-6 text-sm">
+          Accede con tu cuenta de Google para continuar
+        </p>
         <div id="google-button" className="flex justify-center" />
       </div>
     </div>
