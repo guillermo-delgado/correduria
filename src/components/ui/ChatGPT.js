@@ -16,37 +16,46 @@ export default function ChatGPT() {
             console.log("✅ SessionId existente:", sessionId);
         }
     }, []);
-    const handleSend = async () => {
-        if (!input.trim())
-            return;
-        setMessages((prev) => [...prev, `🧑‍💼 Tú: ${input}`]);
-        setLoading(true);
-        try {
-            const sessionId = localStorage.getItem("sessionId");
-            const res = await fetch("http://localhost:3001/api/chat", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message: input, sessionId }),
-            });
-            const text = await res.text();
-            console.log("📥 Texto crudo recibido:", text);
-            const data = JSON.parse(text);
-            console.log("✅ JSON parseado:", data);
-            const reply = data?.reply;
-            if (reply) {
-                setMessages((prev) => [...prev, `🤖 ChatGPT: ${reply}`]);
-            }
-            else {
-                setMessages((prev) => [...prev, "❌ Error: No se pudo obtener una respuesta."]);
-            }
-        }
-        catch (error) {
-            console.error("❌ Error al conectar con el backend:", error);
-            setMessages((prev) => [...prev, "❌ Error de red o API."]);
-        }
-        setInput("");
-        setLoading(false);
-    };
+    const API_URL =
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:3001/api/chat"
+    : "https://back-end-correduria.onrender.com/api/chat"; // <- Usa aquí tu URL real de Render
+
+const handleSend = async () => {
+  if (!input.trim()) return;
+
+  setMessages((prev) => [...prev, `🧑‍💼 Tú: ${input}`]);
+  setLoading(true);
+
+  try {
+    const sessionId = localStorage.getItem("sessionId");
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: input, sessionId }),
+    });
+
+    const text = await res.text();
+    console.log("📥 Texto crudo recibido:", text);
+
+    const data = JSON.parse(text);
+    console.log("✅ JSON parseado:", data);
+
+    const reply = data?.reply;
+    if (reply) {
+      setMessages((prev) => [...prev, `🤖 ChatGPT: ${reply}`]);
+    } else {
+      setMessages((prev) => [...prev, "❌ Error: No se pudo obtener una respuesta."]);
+    }
+  } catch (error) {
+    console.error("❌ Error al conectar con el backend:", error);
+    setMessages((prev) => [...prev, "❌ Error de red o API."]);
+  }
+
+  setInput("");
+  setLoading(false);
+};
+
     const handleKeyDown = (e) => {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();

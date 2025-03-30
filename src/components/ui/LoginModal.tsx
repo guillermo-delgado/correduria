@@ -24,7 +24,12 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
           <Dialog.Title className="text-xl font-bold">Accede a tu cuenta</Dialog.Title>
           <button
   onClick={() => {
-    window.location.href = "http://localhost:5000/auth/google";
+    const isLocalhost = window.location.hostname === "localhost";
+    const backendURL = isLocalhost
+      ? "http://localhost:5000"
+      : "https://back-end-correduria.onrender.com";
+
+    window.location.href = `${backendURL}/auth/google`;
   }}
   className="w-full flex items-center justify-center gap-2 bg-white border text-gray-700 rounded-lg px-4 py-2 mb-4 shadow-sm hover:bg-gray-50 transition"
 >
@@ -35,6 +40,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
   />
   <span>Iniciar sesión con Google</span>
 </button>
+
 
         </Dialog.Panel>
       </div>
