@@ -5,9 +5,7 @@ import DOMPurify from 'dompurify';
 import { googleLogout } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
 
-// 🔄 Añadir esta constante cerca del top del componente
 const apiBase = import.meta.env.VITE_API_URL || "http://localhost:3001";
-
 
 type Chat = {
   id: number;
@@ -46,19 +44,19 @@ export default function WhatsappPage() {
   useEffect(() => {
     const fetchAllHistories = async () => {
       const sessionIds = JSON.parse(localStorage.getItem("sessionIds") || "[]");
-  
+
       const restoredChats: Chat[] = await Promise.all(
         sessionIds.map(async (sessionId: string, index: number) => {
           try {
             const res = await fetch(`${apiBase}/api/history/${sessionId}`);
             const data = await res.json();
-  
+
             if (data.history && Array.isArray(data.history)) {
               const formattedMessages = data.history.map((msg: any) => {
                 const prefix = msg.role === "user" ? "🧑‍💼 Tú: " : "🤖|HTML|";
                 return prefix + msg.content;
               });
-  
+
               return {
                 id: index + 1,
                 name: index === 0 ? "Asistente" : `Asistente ${index + 1}`,
@@ -71,13 +69,12 @@ export default function WhatsappPage() {
           }
         })
       );
-  
+
       setChats(restoredChats.filter(Boolean));
     };
-  
+
     fetchAllHistories();
   }, []);
-  
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -114,10 +111,9 @@ export default function WhatsappPage() {
     if (!sessionId) {
       sessionId = Date.now().toString();
       const existingIds = JSON.parse(localStorage.getItem("sessionIds") || "[]");
-if (!existingIds.includes(sessionId)) {
-  localStorage.setItem("sessionIds", JSON.stringify([...existingIds, sessionId]));
-}
-
+      if (!existingIds.includes(sessionId)) {
+        localStorage.setItem("sessionIds", JSON.stringify([...existingIds, sessionId]));
+      }
 
       setChats(prev =>
         prev.map(chat =>
@@ -138,14 +134,12 @@ if (!existingIds.includes(sessionId)) {
       const reply: string = data?.reply ?? '';
       if (!reply) throw new Error("Respuesta vacía");
 
-      
       const dirtyHtml = await marked.parse(reply);
       const html = DOMPurify.sanitize(dirtyHtml);
       const isHtml = html.includes('<table');
       const cleaned = isHtml ? html : html.replace(/^<p>(.*?)<\/p>\s*$/s, '$1');
 
       const finalMessages = [...newMessages, isHtml ? `🤖|HTML|${cleaned}` : `🤖 ${cleaned}`];
-
       updateChatMessages(activeChatId, finalMessages);
     } catch (error) {
       updateChatMessages(activeChatId, [
@@ -174,15 +168,13 @@ if (!existingIds.includes(sessionId)) {
     const deletedChat = chats.find((chat) => chat.id === chatId);
     const updated = chats.filter((chat) => chat.id !== chatId);
     setChats(updated);
-    
-    // ✅ Eliminar el sessionId del localStorage
+
     if (deletedChat?.sessionId) {
       const existingIds = JSON.parse(localStorage.getItem("sessionIds") || "[]");
       const filtered = existingIds.filter((id: string) => id !== deletedChat.sessionId);
       localStorage.setItem("sessionIds", JSON.stringify(filtered));
     }
-    
-    // ✅ Si eliminamos el chat activo, actualizar
+
     if (chatId === activeChatId) {
       if (updated.length > 0) {
         setActiveChatId(updated[0].id);
@@ -191,7 +183,6 @@ if (!existingIds.includes(sessionId)) {
       }
     }
   }
-    
 
   const openChat = (chatId: number) => {
     setActiveChatId(chatId);
