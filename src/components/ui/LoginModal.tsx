@@ -42,6 +42,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
 </button>
 
 
+
         </Dialog.Panel>
       </div>
     </Dialog>
