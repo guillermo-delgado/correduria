@@ -34,8 +34,13 @@ export default function LoginPage({ onLogin }: { onLogin: (user: any) => void })
 
   const handleCredentialResponse = (response: any) => {
     console.log("🔐 Token recibido:", response.credential);
+
     const idToken = response.credential;
-    fetch(`${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/auth/google`, {
+    const apiUrl = `${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/auth/google`;
+
+    console.log("📡 URL de login que se usará:", apiUrl);
+
+    fetch(apiUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ token: idToken }),
@@ -49,7 +54,7 @@ export default function LoginPage({ onLogin }: { onLogin: (user: any) => void })
         localStorage.setItem("user", JSON.stringify(user));
         onLogin(user); // redirige a la app
       })
-      .catch((err) => console.error("Error de autenticación:", err));
+      .catch((err) => console.error("❌ Error de autenticación:", err));
   };
 
   return (
