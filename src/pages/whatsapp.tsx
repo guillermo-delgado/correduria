@@ -5,6 +5,10 @@ import DOMPurify from 'dompurify';
 import { googleLogout } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
 
+// 🔄 Añadir esta constante cerca del top del componente
+const apiBase = import.meta.env.VITE_API_URL || "http://localhost:3001";
+
+
 type Chat = {
   id: number;
   name: string;
@@ -46,7 +50,7 @@ export default function WhatsappPage() {
       const restoredChats: Chat[] = await Promise.all(
         sessionIds.map(async (sessionId: string, index: number) => {
           try {
-            const res = await fetch(`http://localhost:3001/api/history/${sessionId}`);
+            const res = await fetch(`${apiBase}/api/history/${sessionId}`);
             const data = await res.json();
   
             if (data.history && Array.isArray(data.history)) {
@@ -123,7 +127,7 @@ if (!existingIds.includes(sessionId)) {
     }
 
     try {
-      const res = await fetch('http://localhost:3001/api/chat', {
+      const res = await fetch(`${apiBase}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input, sessionId, userId: user._id }),
