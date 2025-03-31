@@ -33,6 +33,7 @@ export default function LoginPage({ onLogin }: { onLogin: (user: any) => void })
   }, [googleLoaded]);
 
   const handleCredentialResponse = (response: any) => {
+    console.log("🔐 Token recibido:", response.credential);
     const idToken = response.credential;
     fetch(`${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/auth/google`, {
       method: "POST",
