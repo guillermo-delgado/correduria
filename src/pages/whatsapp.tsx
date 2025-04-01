@@ -44,37 +44,48 @@ export default function WhatsappPage() {
   useEffect(() => {
     const fetchAllHistories = async () => {
       const sessionIds = JSON.parse(localStorage.getItem("sessionIds") || "[]");
-
+     // console.log("🧠 Session IDs detectadas:", sessionIds);
+  
       const restoredChats: Chat[] = await Promise.all(
         sessionIds.map(async (sessionId: string, index: number) => {
           try {
-            const res = await fetch(`${apiBase}/api/history/${sessionId}`);
+            const url = `${apiBase}/api/history/${sessionId}`;
+            console.log("📡 Cargando historial desde:", url);
+  
+            const res = await fetch(url);
             const data = await res.json();
-
+  
             if (data.history && Array.isArray(data.history)) {
+              console.log(`✅ Historial recibido para sesión ${sessionId}:`, data.history);
+  
               const formattedMessages = data.history.map((msg: any) => {
                 const prefix = msg.role === "user" ? "🧑‍💼 Tú: " : "🤖|HTML|";
                 return prefix + msg.content;
               });
-
+  
               return {
                 id: index + 1,
                 name: index === 0 ? "Asistente" : `Asistente ${index + 1}`,
                 sessionId,
                 messages: formattedMessages,
               };
+            } else {
+              console.warn(`⚠️ Historial vacío o mal formado para ${sessionId}`);
             }
           } catch (error) {
             console.error(`❌ Error al recuperar historial de sesión ${sessionId}:`, error);
           }
         })
       );
-
-      setChats(restoredChats.filter(Boolean));
+  
+      const chatsFiltrados = restoredChats.filter(Boolean);
+      console.log("🧾 Chats restaurados:", chatsFiltrados);
+      setChats(chatsFiltrados);
     };
-
+  
     fetchAllHistories();
   }, []);
+  
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -123,6 +134,7 @@ export default function WhatsappPage() {
     }
 
     try {
+      
       const res = await fetch(`${apiBase}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
