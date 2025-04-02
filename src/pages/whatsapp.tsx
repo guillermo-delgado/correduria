@@ -44,7 +44,7 @@ export default function WhatsappPage() {
   useEffect(() => {
     const fetchAllHistories = async () => {
       const sessionIds = JSON.parse(localStorage.getItem("sessionIds") || "[]");
-      console.log("🧠 Session IDs detectadas:", sessionIds);
+     // console.log("🧠 Session IDs detectadas:", sessionIds);
   
       const restoredChats: Chat[] = await Promise.all(
         sessionIds.map(async (sessionId: string, index: number) => {

@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 
+// ✅ Base de la API desde .env o localhost
+const apiBase = import.meta.env.VITE_API_URL || "http://localhost:3001";
+
 declare global {
   interface Window {
     google: any;
@@ -36,7 +39,7 @@ export default function LoginPage({ onLogin }: { onLogin: (user: any) => void })
     console.log("🔐 Token recibido:", response.credential);
 
     const idToken = response.credential;
-    const apiUrl = `${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/auth/google`;
+    const apiUrl = `${apiBase}/api/auth/google`;
 
     console.log("📡 URL de login que se usará:", apiUrl);
 
@@ -52,7 +55,7 @@ export default function LoginPage({ onLogin }: { onLogin: (user: any) => void })
           avatar: data.user.avatar || data.user.picture || null,
         };
         localStorage.setItem("user", JSON.stringify(user));
-        onLogin(user); // redirige a la app
+        onLogin(user);
       })
       .catch((err) => console.error("❌ Error de autenticación:", err));
   };
