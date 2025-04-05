@@ -5,9 +5,14 @@ import DOMPurify from 'dompurify';
 import { googleLogout } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
 import { io } from "socket.io-client";
+import { Pencil, Trash2, X } from "lucide-react";
+
 
 const socket = io(import.meta.env.VITE_API_URL || "http://localhost:3001");
 const apiBase = import.meta.env.VITE_API_URL || "http://localhost:3001";
+
+
+
 
 type Chat = {
   id: number;
@@ -31,6 +36,11 @@ export default function WhatsappPage() {
   const [loading, setLoading] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const [editNameId, setEditNameId] = useState<number | null>(null);
+  const [tempName, setTempName] = useState('');
+  const [editingHeaderName, setEditingHeaderName] = useState(false);
+  const [tempHeaderName, setTempHeaderName] = useState('');
+
 
   const activeChat = chats.find((chat) => chat.id === activeChatId) || null;
 
@@ -71,6 +81,35 @@ export default function WhatsappPage() {
       console.error("❌ Error cargando sesiones desde el backend:", error);
     }
   };
+
+  const renameChat = async (chatId: number, newName: string) => {
+    try {
+      await fetch(`${apiBase}/api/history/rename/${chatId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newName }),
+      });
+      setChats(prev => prev.map(chat =>
+        chat.id === chatId ? { ...chat, name: newName } : chat
+      ));
+      socket.emit('mensajeEnviado');
+    } catch (err) {
+      console.error("❌ Error renombrando chat:", err);
+    }
+  };
+  
+  const deleteChatFromBackend = async (sessionId: string) => {
+    try {
+      await fetch(`${apiBase}/api/history/delete/${sessionId}`, {
+        method: 'DELETE',
+      });
+        
+      socket.emit('mensajeEnviado');
+    } catch (err) {
+      console.error("❌ Error al eliminar chat del backend:", err);
+    }
+  };
+  
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user") || "null");
@@ -188,17 +227,22 @@ export default function WhatsappPage() {
   };
 
   const deleteChat = (chatId: number) => {
+    const chatToDelete = chats.find((chat) => chat.id === chatId);
+    if (!chatToDelete) return;
+  
+    if (chatToDelete.sessionId) {
+      deleteChatFromBackend(chatToDelete.sessionId);
+    }
+  
     const updated = chats.filter((chat) => chat.id !== chatId);
     setChats(updated);
-
+  
     if (chatId === activeChatId) {
-      if (updated.length > 0) {
-        setActiveChatId(updated[0].id);
-      } else {
-        setActiveChatId(0);
-      }
+      setActiveChatId(updated.length > 0 ? updated[0].id : 0);
     }
   };
+  
+  
 
   const openChat = (chatId: number) => {
     setActiveChatId(chatId);
@@ -243,22 +287,56 @@ export default function WhatsappPage() {
                     {chat.name.charAt(0)}
                   </div>
                   <div>
-                    <div className="font-medium text-gray-800">{chat.name}</div>
+                  {editNameId === chat.id ? (
+  <input
+    autoFocus
+    value={tempName}
+    onChange={(e) => setTempName(e.target.value)}
+    onBlur={() => {
+      renameChat(chat.id, tempName);
+      setEditNameId(null);
+    }}
+    onKeyDown={(e) => {
+      if (e.key === 'Enter') {
+        renameChat(chat.id, tempName);
+        setEditNameId(null);
+      }
+    }}
+    className="text-sm font-medium text-gray-800 border border-gray-300 rounded px-2 py-1"
+  />
+) : (
+  <div
+    onDoubleClick={() => {
+      setEditNameId(chat.id);
+      setTempName(chat.name);
+    }}
+    className="font-medium text-gray-800"
+  >
+    {chat.name}
+  </div>
+)}
+
                     <div className="text-xs text-gray-500 truncate max-w-[180px]">
                       {stripHTML(chat.messages.at(-1) ?? '').slice(0, 30)}
                     </div>
                   </div>
                 </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteChat(chat.id);
-                  }}
-                  title="Eliminar chat"
-                  className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500 ml-2"
-                >
-                  🗑️
-                </button>
+                <span
+  onClick={(e) => {
+    e.stopPropagation();
+    const confirmed = window.confirm("¿Estás seguro de que quieres eliminar este chat?");
+    if (confirmed) deleteChat(chat.id);
+  }}
+  title="Eliminar chat"
+  className="text-gray-400 hover:text-red-500 ml-2 cursor-pointer transition-colors"
+>
+  <Trash2 size={22} />
+</span>
+
+
+
+                
+
               </li>
             ))}
           </ul>
@@ -269,19 +347,60 @@ export default function WhatsappPage() {
         </aside>
 
         <main className={`${isMobileChatOpen ? 'flex' : 'hidden'} lg:flex flex-1 flex-col bg-gray-50`}>
-          <header className="p-4 border-b bg-white shadow-sm font-medium text-gray-800 flex items-center">
-            {activeChat && (
-              <>
-                <div className="w-9 h-9 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold">
-                  {activeChat.name.charAt(0)}
-                </div>
-                <span className="ml-2">{activeChat.name}</span>
-              </>
-            )}
-            <button onClick={() => setIsMobileChatOpen(false)} className="ml-auto lg:hidden bg-blue-100 text-blue-600 px-4 py-2 rounded-md text-sm shadow-sm hover:bg-blue-200 transition">
-              ← Volver
-            </button>
-          </header>
+        <header className="p-4 border-b bg-white shadow-sm font-medium text-gray-800 flex items-center relative">
+  {activeChat && (
+    <>
+      <div className="w-9 h-9 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold">
+        {activeChat.name.charAt(0)}
+      </div>
+
+      {editingHeaderName ? (
+        <input
+          autoFocus
+          value={tempHeaderName}
+          onChange={(e) => setTempHeaderName(e.target.value)}
+          onBlur={() => {
+            renameChat(activeChat.id, tempHeaderName);
+            setEditingHeaderName(false);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              renameChat(activeChat.id, tempHeaderName);
+              setEditingHeaderName(false);
+            }
+          }}
+          className="ml-2 text-sm font-medium text-gray-800 border border-gray-300 rounded px-2 py-1"
+        />
+      ) : (
+        <div className="ml-2 flex items-center gap-1">
+          <span className="font-medium text-gray-800">{activeChat.name}</span>
+          <span ml-2
+            onClick={() => {
+              setEditingHeaderName(true);
+              setTempHeaderName(activeChat.name);
+            }}
+            title="Editar nombre"
+            className="cursor-pointer text-gray-400 hover:text-blue-500"
+          >
+            <Pencil size={18} />
+          </span>
+        </div>
+      )}
+    </>
+  )}
+
+  <span
+    onClick={() => setIsMobileChatOpen(false)}
+    title="Cerrar chat"
+    className="ml-auto lg:hidden text-[22px] text-red-500 hover:text-red-600 cursor-pointer leading-none"
+  >
+    ❌
+  </span>
+</header>
+
+
+
+
 
           <div className="flex-1 p-4 overflow-y-auto space-y-4">
             {activeChat?.messages.map((msg, i) => {
