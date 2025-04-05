@@ -5,7 +5,7 @@ import DOMPurify from 'dompurify';
 import { googleLogout } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
 import { io } from "socket.io-client";
-import { Pencil, Trash2, X } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 
 
 const socket = io(import.meta.env.VITE_API_URL || "http://localhost:3001");
