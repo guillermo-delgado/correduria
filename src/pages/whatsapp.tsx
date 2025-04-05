@@ -86,8 +86,11 @@ export default function WhatsappPage() {
   }, [user]);
 
   useEffect(() => {
+    if (!user) return;
     socket.on('actualizarChats', cargarSesionesDesdeBackend);
-    return () => socket.off('actualizarChats', cargarSesionesDesdeBackend);
+    return () => {
+      socket.off('actualizarChats', cargarSesionesDesdeBackend);
+    };
   }, [user]);
 
   useEffect(() => {
