@@ -26,19 +26,29 @@ export default function LoginPage({ onLogin }: { onLogin: (user: any) => void })
 
   useEffect(() => {
     if (!googleLoaded) return;
-
+  
     console.log("✅ Google SDK inicializado");
-
+  
     window.google.accounts.id.initialize({
       client_id: "945516481273-r5af5fsg05r3f242l92o45c3qge7mg5c.apps.googleusercontent.com",
       callback: handleCredentialResponse,
+      ux_mode: "popup", // ✅ fuerza el popup (más fiable en iOS)
     });
-
+  
     window.google.accounts.id.renderButton(
       document.getElementById("google-button")!,
-      { theme: "filled_blue", size: "large", text: "signin_with", shape: "pill" }
+      {
+        theme: "filled_blue",
+        size: "large",
+        text: "signin_with",
+        shape: "pill"
+      }
     );
+  
+    // Opcional: muestra automáticamente el popup si quieres auto-login
+    // window.google.accounts.id.prompt();
   }, [googleLoaded]);
+  
 
   const handleCredentialResponse = async (response: any) => {
     try {
