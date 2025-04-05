@@ -4,7 +4,9 @@ import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import { googleLogout } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
+import { io } from "socket.io-client";
 
+const socket = io(import.meta.env.VITE_API_URL || "http://localhost:3001");
 const apiBase = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 type Chat = {
@@ -32,71 +34,79 @@ export default function WhatsappPage() {
 
   const activeChat = chats.find((chat) => chat.id === activeChatId) || null;
 
+  const cargarSesionesDesdeBackend = async () => {
+    if (!user) return;
+    try {
+      const url = `${apiBase}/api/user/debug/sesiones/${user._id}`;
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (Array.isArray(data.sesiones)) {
+        const sesionesOrdenadas = [...data.sesiones].sort(
+          (a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime()
+        );
+
+        const conversaciones = sesionesOrdenadas
+          .map((s, index) => {
+            const mensajesFiltrados = s.messages.filter((m: any) => m.role !== 'system');
+            if (mensajesFiltrados.length === 0) return null;
+
+            const messages = mensajesFiltrados.map((m: any) => {
+              const prefix = m.role === 'user' ? '🧑‍💼 Tú: ' : '🤖|HTML|';
+              return prefix + m.content;
+            });
+
+            return {
+              id: s.sessionId,
+              name: s.name || `Asistente ${index + 1}`,
+              sessionId: s.sessionId,
+              messages,
+            };
+          })
+          .filter(Boolean);
+
+        setChats(conversaciones as Chat[]);
+      }
+    } catch (error) {
+      console.error("❌ Error cargando sesiones desde el backend:", error);
+    }
+  };
+
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user") || "null");
     if (!storedUser) {
       navigate("/login");
-    } else {
-      setUser(storedUser);
+      return;
     }
+    setUser(storedUser);
   }, [navigate]);
 
   useEffect(() => {
-    const fetchAllHistories = async () => {
-      const sessionIds = JSON.parse(localStorage.getItem("sessionIds") || "[]");
-     // console.log("🧠 Session IDs detectadas:", sessionIds);
-  
-      const restoredChats: Chat[] = await Promise.all(
-        sessionIds.map(async (sessionId: string, index: number) => {
-          try {
-            const url = `${apiBase}/api/history/${sessionId}`;
-            console.log("📡 Cargando historial desde:", url);
-  
-            const res = await fetch(url);
-            const data = await res.json();
-  
-            if (data.history && Array.isArray(data.history)) {
-              console.log(`✅ Historial recibido para sesión ${sessionId}:`, data.history);
-  
-              const formattedMessages = data.history.map((msg: any) => {
-                const prefix = msg.role === "user" ? "🧑‍💼 Tú: " : "🤖|HTML|";
-                return prefix + msg.content;
-              });
-  
-              return {
-                id: index + 1,
-                name: index === 0 ? "Asistente" : `Asistente ${index + 1}`,
-                sessionId,
-                messages: formattedMessages,
-              };
-            } else {
-              console.warn(`⚠️ Historial vacío o mal formado para ${sessionId}`);
-            }
-          } catch (error) {
-            console.error(`❌ Error al recuperar historial de sesión ${sessionId}:`, error);
-          }
-        })
-      );
-  
-      const chatsFiltrados = restoredChats.filter(Boolean);
-      console.log("🧾 Chats restaurados:", chatsFiltrados);
-      setChats(chatsFiltrados);
-    };
-  
-    fetchAllHistories();
-  }, []);
-  
+    if (user) cargarSesionesDesdeBackend();
+  }, [user]);
+
+  useEffect(() => {
+    socket.on('actualizarChats', cargarSesionesDesdeBackend);
+    return () => socket.off('actualizarChats', cargarSesionesDesdeBackend);
+  }, [user]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [activeChat?.messages]);
 
   const updateChatMessages = (chatId: number, newMessages: string[]) => {
-    setChats((prev) =>
-      prev.map((chat) =>
+    setChats((prev) => {
+      const updated = prev.map((chat) =>
         chat.id === chatId ? { ...chat, messages: newMessages } : chat
-      )
-    );
+      );
+
+      const reordered = [
+        ...updated.filter((chat) => chat.id === chatId),
+        ...updated.filter((chat) => chat.id !== chatId),
+      ];
+
+      return reordered;
+    });
   };
 
   const handleSend = async () => {
@@ -121,11 +131,6 @@ export default function WhatsappPage() {
     let sessionId = chats.find(c => c.id === activeChatId)?.sessionId;
     if (!sessionId) {
       sessionId = Date.now().toString();
-      const existingIds = JSON.parse(localStorage.getItem("sessionIds") || "[]");
-      if (!existingIds.includes(sessionId)) {
-        localStorage.setItem("sessionIds", JSON.stringify([...existingIds, sessionId]));
-      }
-
       setChats(prev =>
         prev.map(chat =>
           chat.id === activeChatId ? { ...chat, sessionId } : chat
@@ -134,7 +139,6 @@ export default function WhatsappPage() {
     }
 
     try {
-      
       const res = await fetch(`${apiBase}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -153,6 +157,7 @@ export default function WhatsappPage() {
 
       const finalMessages = [...newMessages, isHtml ? `🤖|HTML|${cleaned}` : `🤖 ${cleaned}`];
       updateChatMessages(activeChatId, finalMessages);
+      socket.emit('mensajeEnviado');
     } catch (error) {
       updateChatMessages(activeChatId, [
         ...activeChat.messages,
@@ -165,27 +170,23 @@ export default function WhatsappPage() {
   };
 
   const handleNewChat = () => {
-    const newId = chats.length + 1;
+    const totalAsistentes = chats.filter(chat => chat.name.startsWith("Asistente")).length;
+    const newId = chats.length > 0 ? Math.max(...chats.map(c => Number(c.id))) + 1 : 1;
+
     const newChat: Chat = {
       id: newId,
-      name: `Asistente ${newId}`,
+      name: `Asistente ${totalAsistentes + 1}`,
       messages: ['🤖 Asistente: Hola, soy tu nuevo asistente. ¿Qué necesitas?'],
     };
+
     setChats([newChat, ...chats]);
     setActiveChatId(newId);
     setIsMobileChatOpen(true);
   };
 
   const deleteChat = (chatId: number) => {
-    const deletedChat = chats.find((chat) => chat.id === chatId);
     const updated = chats.filter((chat) => chat.id !== chatId);
     setChats(updated);
-
-    if (deletedChat?.sessionId) {
-      const existingIds = JSON.parse(localStorage.getItem("sessionIds") || "[]");
-      const filtered = existingIds.filter((id: string) => id !== deletedChat.sessionId);
-      localStorage.setItem("sessionIds", JSON.stringify(filtered));
-    }
 
     if (chatId === activeChatId) {
       if (updated.length > 0) {
@@ -194,7 +195,7 @@ export default function WhatsappPage() {
         setActiveChatId(0);
       }
     }
-  }
+  };
 
   const openChat = (chatId: number) => {
     setActiveChatId(chatId);
@@ -215,9 +216,7 @@ export default function WhatsappPage() {
         <aside className={`${isMobileChatOpen ? 'hidden' : 'flex'} lg:flex w-full lg:w-1/3 bg-white border-r relative flex-col`}>
           <div className="px-4 py-4 border-b flex justify-between items-center">
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => setShowMenu(!showMenu)}>
-              {user?.avatar ? (
-                <img src={user.avatar} className="w-9 h-9 rounded-full" alt="avatar" />
-              ) : null}
+              {user?.avatar && <img src={user.avatar} className="w-9 h-9 rounded-full" alt="avatar" />}
               <span className="font-medium text-gray-800 text-sm truncate max-w-[120px]">{user?.nombre}</span>
             </div>
             {showMenu && (
@@ -234,9 +233,7 @@ export default function WhatsappPage() {
               <li
                 key={chat.id}
                 onClick={() => openChat(chat.id)}
-                className={`group p-4 cursor-pointer hover:bg-gray-100 transition flex justify-between items-center ${
-                  activeChatId === chat.id ? 'bg-gray-100' : ''
-                }`}
+                className={`group p-4 cursor-pointer hover:bg-gray-100 transition flex justify-between items-center ${activeChatId === chat.id ? 'bg-gray-100' : ''}`}
               >
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold">
@@ -291,7 +288,16 @@ export default function WhatsappPage() {
 
               return (
                 <div key={i} className={`text-sm ${isUser ? 'text-right text-blue-600' : 'text-left text-gray-800'}`}>
-                  <div className={`inline-block px-4 py-2 rounded-2xl shadow-sm max-w-[70%] ${isUser ? 'bg-blue-100 ml-auto' : 'bg-white'}`} {...(isBotHtml ? { dangerouslySetInnerHTML: { __html: cleanMsg } } : { children: cleanMsg })} />
+                  {isBotHtml ? (
+                    <div
+                      className={`inline-block px-4 py-2 rounded-2xl shadow-sm max-w-[70%] ${isUser ? 'bg-blue-100 ml-auto' : 'bg-white'}`}
+                      dangerouslySetInnerHTML={{ __html: cleanMsg }}
+                    />
+                  ) : (
+                    <div className={`inline-block px-4 py-2 rounded-2xl shadow-sm max-w-[70%] ${isUser ? 'bg-blue-100 ml-auto' : 'bg-white'}`}>
+                      {cleanMsg}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -301,7 +307,14 @@ export default function WhatsappPage() {
           </div>
 
           <footer className="p-4 border-t bg-white flex gap-2">
-            <input type="text" placeholder="Escribe un mensaje..." value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSend()} className="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+            <input
+              type="text"
+              placeholder="Escribe un mensaje..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+              className="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            />
             <button onClick={handleSend} disabled={loading} className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full transition shadow">
               Enviar
             </button>
