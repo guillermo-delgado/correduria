@@ -1,16 +1,15 @@
-import { useEffect, useState } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
+import { useState } from "react";
 
 export default function SWUpdater() {
-  const [isMobile, setIsMobile] = useState(false);
   const [showUpdate, setShowUpdate] = useState(false);
 
   const { updateServiceWorker } = useRegisterSW({
     onNeedRefresh() {
       const isProd = !["localhost", "127.0.0.1"].includes(window.location.hostname);
-      const isMobileDevice = window.innerWidth <= 768;
+      const isMobile = window.innerWidth <= 768;
 
-      if (isProd && isMobileDevice) {
+      if (isProd && isMobile) {
         setShowUpdate(true);
       }
     },
@@ -18,11 +17,6 @@ export default function SWUpdater() {
       console.log("📲 App lista sin conexión");
     },
   });
-
-  // Detectar móvil al montar
-  useEffect(() => {
-    setIsMobile(window.innerWidth <= 768);
-  }, []);
 
   if (!showUpdate) return null;
 
