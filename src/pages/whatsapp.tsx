@@ -62,7 +62,7 @@ export default function WhatsappPage() {
             if (mensajesFiltrados.length === 0) return null;
 
             const messages = mensajesFiltrados.map((m: any) => {
-              const prefix = m.role === 'user' ? '🧑‍💼 Tú: ' : '🤖|HTML|';
+              const prefix = m.role === 'user' ? '🧑‍💼 Tú: ' : '🤖';
               return prefix + m.content;
             });
 
@@ -197,7 +197,7 @@ export default function WhatsappPage() {
       const isHtml = html.includes('<table');
       const cleaned = isHtml ? html : html.replace(/^<p>(.*?)<\/p>\s*$/s, '$1');
 
-      const finalMessages = [...newMessages, isHtml ? `🤖|HTML|${cleaned}` : `🤖 ${cleaned}`];
+      const finalMessages = [...newMessages, isHtml ? `🤖${cleaned}` : `🤖 ${cleaned}`];
       updateChatMessages(activeChatId, finalMessages);
       socket.emit('mensajeEnviado');
     } catch (error) {
@@ -334,7 +334,6 @@ export default function WhatsappPage() {
 </span>
 
 
-
                 
 
               </li>
@@ -405,8 +404,8 @@ export default function WhatsappPage() {
           <div className="flex-1 p-4 overflow-y-auto space-y-4">
             {activeChat?.messages.map((msg, i) => {
               const isUser = msg.startsWith('🧑‍💼');
-              const isBotHtml = msg.startsWith('🤖|HTML|');
-              const cleanMsg = isBotHtml ? msg.replace('🤖|HTML|', '') : msg;
+              const isBotHtml = msg.startsWith('🤖');
+              const cleanMsg = isBotHtml ? msg.replace('🤖', '') : msg;
 
               return (
                 <div key={i} className={`text-sm ${isUser ? 'text-right text-blue-600' : 'text-left text-gray-800'}`}>
