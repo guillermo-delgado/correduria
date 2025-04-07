@@ -1,35 +1,37 @@
-// src/components/SWUpdater.tsx
 import { useEffect, useState } from "react";
+import { useRegisterSW } from "virtual:pwa-register/react";
 
 export default function SWUpdater() {
-  const [updateAvailable, setUpdateAvailable] = useState(false);
-  const [updateSW, setUpdateSW] = useState<(() => void) | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [showUpdate, setShowUpdate] = useState(false);
 
+  const { updateServiceWorker } = useRegisterSW({
+    onNeedRefresh() {
+      const isProd = !["localhost", "127.0.0.1"].includes(window.location.hostname);
+      const isMobileDevice = window.innerWidth <= 768;
+
+      if (isProd && isMobileDevice) {
+        setShowUpdate(true);
+      }
+    },
+    onOfflineReady() {
+      console.log("📲 App lista sin conexión");
+    },
+  });
+
+  // Detectar móvil al montar
   useEffect(() => {
-    // Importación dinámica compatible con Vite PWA
-    import('virtual:pwa-register').then((mod: any) => {
-      const { registerSW } = mod;
-      const update = registerSW({
-        onNeedRefresh() {
-          setUpdateAvailable(true);
-        },
-        onOfflineReady() {
-          console.log("⚙️ App lista para funcionar sin conexión");
-        }
-      });
-
-      setUpdateSW(() => () => update(true));
-    });
+    setIsMobile(window.innerWidth <= 768);
   }, []);
 
-  if (!updateAvailable || !updateSW) return null;
+  if (!showUpdate) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 bg-yellow-300 text-black px-4 py-2 rounded shadow-lg z-50">
-      <p>🔄 Nueva versión disponible</p>
+    <div className="fixed bottom-4 left-4 right-4 bg-yellow-300 text-black px-6 py-3 rounded-xl shadow-md z-50 flex items-center justify-between">
+      <span className="text-sm font-medium">🔄 Nueva versión disponible</span>
       <button
-        onClick={updateSW}
-        className="mt-2 px-3 py-1 bg-black text-white rounded"
+        className="bg-black text-white px-3 py-1 rounded hover:bg-gray-800 transition"
+        onClick={() => updateServiceWorker(true)}
       >
         Actualizar
       </button>
